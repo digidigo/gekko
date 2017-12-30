@@ -1,0 +1,8 @@
+short = 2
+long = 30
+
+[thresholds]
+down = 0.05
+up = 0.03
+getOut = 0.10
+persistence = 1
