@@ -4,8 +4,8 @@ var EMA = require('./EMA.js');
 var Indicator = function(config) {
   this.input = 'price';
   this.lastPrice = 0;
-  this.short = new EMA(config.short);
-  this.long = new EMA(config.long); 
+  this.short = new SMA(config.short);
+  this.long = new SMA(config.long); 
   this.priceCount = 0; 
 }
 
