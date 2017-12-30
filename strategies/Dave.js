@@ -34,6 +34,7 @@ method.init = function() {
   // define the indicators we need
   this.addIndicator('dave', 'Dave', this.settings);
   this.boughtPriceCount = 0;
+  this.maxExposureCount = 0;
 }
 
 // what happens on every new candle?
@@ -50,6 +51,9 @@ method.check = function() {
   var change = shortAverage/longAverage;
   var priceCountDiff = this.indicators.dave.priceCount - this.boughtPriceCount;
   
+  var maxExposureHitCountDiff = this.indicators.dave.priceCount - this.maxExposureCount;
+  var weHitMaxExposure = this.maxExposureCount > 0;
+  
   if( this.boughtAt > 0 ){
     var change = lastPrice / this.boughtAt;
   // 
@@ -62,23 +66,26 @@ method.check = function() {
     
     if( change > 1.0 ){
       log.debug("*******","We have lift",shortAverage.toFixed(4),longAverage.toFixed(4),liftSize.toFixed(8));
-      
+            
       if(liftSize > this.settings.thresholds.up){
         this.advice('short');
         log.debug("******",'We sold',lastPrice);
         this.boughtAt = 0;
+        this.maxExposureCount = 0;
       } 
     } else if( dipSize > 0 ){
       if( dipSize > this.settings.thresholds.getOut ){
         log.debug("*******","Get Out!",shortAverage.toFixed(4),longAverage.toFixed(4),dipSize.toFixed(8));        
         this.advice('short');
         this.boughtAt = 0;
+        //this.maxExposureCount = this.indicators.dave.priceCount;
       }
     } 
     
-    if( this.boughtAt > 0 && priceCountDiff > 100000000){
+    if( this.boughtAt > 0 && priceCountDiff > this.settings.thresholds.maxExposureLength){
       this.advice('short');
       this.boughtAt = 0;
+      //this.maxExposureCount = this.indicators.dave.priceCount;
     }
   } else if( change < 1.0 ){
     // dip size is 1 - above 
@@ -86,6 +93,11 @@ method.check = function() {
     log.debug("*******","We have a dip",shortAverage.toFixed(4),longAverage.toFixed(4),dipSize.toFixed(8));
     
   // if dip size is greater than threshold to buy
+    if( weHitMaxExposure && maxExposureHitCountDiff < this.settings.thresholds.maxExposureLength){
+      log.debug("******","Skipping any buy because we just hit a max exposure");
+      this.advice();
+      return;
+    }
     
     if( dipSize > this.settings.thresholds.down ){
       // then buy and save the price  to buy price and mark that we bought
@@ -93,6 +105,7 @@ method.check = function() {
       this.boughtAt = lastPrice; 
       this.boughtPriceCount = this.indicators.dave.priceCount;
       log.debug('\n','*****************',"We bought", lastPrice, this.boughtPriceCount,'\n');
+      this.maxExposureCount = 0;
     }
   } else {
 
