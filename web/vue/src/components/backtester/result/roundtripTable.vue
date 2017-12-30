@@ -6,9 +6,11 @@
         tr
           th Entry at (UTC)
           th Exit at (UTC)
-          th Exposure
+          th Exposures
           th Entry balance
           th Exit balance
+          th Entry price
+          th Exit Price
           th P&amp;L
           th Profit
         tr(v-for='rt in roundtrips')
@@ -17,6 +19,8 @@
           td {{ diff(rt.duration) }}
           td {{ round(rt.entryBalance) }}
           td {{ round(rt.exitBalance) }}
+          td {{ round(rt.entryPrice) }}
+          td {{ round(rt.exitPrice) }}
           template(v-if="Math.sign(rt.pnl)===-1")
             td.loss {{ Math.sign(rt.pnl)*rt.pnl.toFixed(2) }}
             td.loss {{ rt.profit.toFixed(2) }}%

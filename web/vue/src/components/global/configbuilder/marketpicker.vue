@@ -30,9 +30,9 @@ export default {
   data: () => {
     return {
       // defaults:
-      exchange: 'poloniex',
-      currency: 'USDT',
-      asset: 'BTC',
+      exchange: 'gdax',
+      currency: 'USD',
+      asset: 'LTC',
     };
   },
   created: function() {

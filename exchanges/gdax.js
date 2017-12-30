@@ -224,13 +224,24 @@ Trader.prototype.cancelOrder = function(order, callback) {
 Trader.prototype.getTrades = function(since, callback, descending) {
     var args = _.toArray(arguments);
     var lastScan = 0;
-
+    var errorMessage = "error message not set";
     var process = function(err, response, data) {
         if (data && data.message)
-            err = new Error(data.message);
+           var  err = new Error(data.message);
             
-        if(err)
+        if(err){          
+          if(data){
+            errorMessage = data.message;          
+          } else {
+            errorMessage = "Data is null";
+          }
+            
+            
+          log.debug('Error waiting 10 seconds to retry...' + errorMessage);
+          var waitTill = new Date(new Date().getTime() + 10000);
+          while(waitTill > new Date()){}
             return this.retry(this.getTrades, args);
+          }
 
         var result = _.map(data, function(trade) {
             return {
@@ -252,6 +263,8 @@ Trader.prototype.getTrades = function(since, callback, descending) {
                     this.scanbackTid = last.trade_id;
                 } else {
                     log.debug('Scanning backwards...' + last.time);
+                    var waitTill = new Date(new Date().getTime() + 1 * 400);
+                    while(waitTill > new Date()){}
                     this.gdax_public.getProductTrades({after: last.trade_id - (batchSize * lastScan) , limit: batchSize}, process);
                     lastScan++;
                     if (lastScan > 100) {
@@ -262,8 +275,13 @@ Trader.prototype.getTrades = function(since, callback, descending) {
 
             if (this.scanbackTid) {
             // if scanbackTid is set we need to move forward again
+              if( last == undefined){
+                return this.retry(this.getTrades, args);
+              }
+                
                 log.debug('Backwards: ' + last.time + ' (' + last.trade_id + ') to ' + first.time + ' (' + first.trade_id + ')');
-
+                var waitTill = new Date(new Date().getTime() + 1 * 400);
+                while(waitTill > new Date()){}
                 if (this.import) {
                     this.scanbackTid = first.trade_id;
                     callback(null, result.reverse());
