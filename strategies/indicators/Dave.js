@@ -1,5 +1,5 @@
 // required indicators
-var EMA = require('./EMA.js');
+var SMA = require('./SMA.js');
 
 var Indicator = function(config) {
   this.input = 'price';
